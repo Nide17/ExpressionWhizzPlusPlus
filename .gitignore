@@ -1,0 +1,24 @@
+# # Ignore all
+*
+
+# # Unignore all with extensions
+!*.*
+
+# Ignore .o and .exe files
+*.o
+*.exe
+
+# Unignore all dirs
+!*/
+
+!Makefile
+
+/backup/
+/out/
+a04*
+/Assig*
+/.vscode/
+*vscode*
+tmp.*
+*.pdf
+./cdict_test
