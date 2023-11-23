@@ -37,8 +37,7 @@ static struct _cl_node *_CL_new_node(CListElementType element, struct _cl_node *
 CList CL_new()
 {
   CList list = (CList)malloc(sizeof(struct _clist));
-  if (list == NULL)
-    return NULL;
+  assert(list != NULL);
 
   list->head = NULL;
   list->length = 0;

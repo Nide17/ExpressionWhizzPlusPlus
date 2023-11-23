@@ -346,8 +346,7 @@ int test_parse_once(double exp_value, int exp_depth, const Token token_arr[])
     CL_append(tokens, token_arr[i]);
 
   tree = Parse(tokens, errmsg, sizeof(errmsg));
-  // TOK_print(tokens);
-  // printf("ET_depth(tree) = %d, Expected = %d\n", ET_depth(tree), exp_depth);
+  TOK_print(tokens);
 
   test_assert(ET_depth(tree) == exp_depth);
   test_assert(fabs(ET_evaluate(tree, vars, errmsg, sizeof(errmsg)) - exp_value) < 0.0001);
@@ -424,6 +423,7 @@ int test_parse_errors()
   char errmsg[128];
   CList tokens = NULL;
   ExprTree tree = NULL;
+  // CDict vars = NULL;
 
   tokens = TOK_tokenize_input("3 + 2", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 3);
@@ -493,12 +493,25 @@ int test_parse_errors()
   ET_free(tree);
   CL_free(tokens);
 
+  // x = 3
+  tokens = TOK_tokenize_input("x = 25", errmsg, sizeof(errmsg));
+  test_assert(CL_length(tokens) == 3);
+  tree = Parse(tokens, errmsg, sizeof(errmsg));
+  test_assert(tree != NULL);
+  ET_tree2string(tree, errmsg, sizeof(errmsg));
+  double result = ET_evaluate(tree, NULL, errmsg, sizeof(errmsg));
+
+    
+  test_assert(result == 25);
+  ET_free(tree);
+  CL_free(tokens);
+
   tokens = TOK_tokenize_input("sine", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 1);
   tree = Parse(tokens, errmsg, sizeof(errmsg));
-  // test_assert(tree != NULL);
+  test_assert(tree != NULL);
   CL_free(tokens);
-  // ET_free(tree);
+  ET_free(tree);
 
   tokens = TOK_tokenize_input("((2+3)*5)/(4-1)", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 15);
@@ -514,12 +527,12 @@ int test_parse_errors()
   ET_free(tree);
   CL_free(tokens);
 
-  // tokens = TOK_tokenize_input("2 + a * 3", errmsg, sizeof(errmsg));
-  // test_assert(CL_length(tokens) == 5);
-  // tree = Parse(tokens, errmsg, sizeof(errmsg));
-  // test_assert(tree != NULL);
-  // ET_free(tree);
-  // CL_free(tokens);
+  tokens = TOK_tokenize_input("2 + a * 3", errmsg, sizeof(errmsg));
+  test_assert(CL_length(tokens) == 5);
+  tree = Parse(tokens, errmsg, sizeof(errmsg));
+  test_assert(tree != NULL);
+  ET_free(tree);
+  CL_free(tokens);
 
   tokens = TOK_tokenize_input("2 + * 3", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 4);

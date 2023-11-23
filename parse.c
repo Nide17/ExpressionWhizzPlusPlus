@@ -171,6 +171,7 @@ static ExprTree exponential(CList tokens, char *errmsg, size_t errmsg_sz)
   {
     TokenType op = TOK_next_type(tokens);
     TOK_consume(tokens);
+    
     ExprTree right = (op == TOK_POWER) ? exponential(tokens, errmsg, errmsg_sz) : assignment(tokens, errmsg, errmsg_sz);
 
     if (right == NULL)
@@ -241,7 +242,6 @@ static ExprTree primary(CList tokens, char *errmsg, size_t errmsg_sz)
   }
   else if (TOK_next_type(tokens) == TOK_SYMBOL)
   {
-
     // TODO: Why is causing a segfault when I use ET_symbol(TOK_next(tokens).t.symbol) directly?
     ExprTree temp_tree = ET_symbol(TOK_next(tokens).t.symbol);
 

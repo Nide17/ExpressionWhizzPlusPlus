@@ -68,7 +68,6 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
 {
   int i = 0;
   CList tokens = CL_new();
-  // printf("input: %s\n", input);
 
   while (input[i] != '\0')
   {
@@ -191,7 +190,6 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
     }
     else
     {
-      printf("Unexpected character %c\n", input[i]);
       Token tok = {TOK_END, {.value = 0.0}};
       CL_append(tokens, (CListElementType)tok);
       snprintf(errmsg, errmsg_sz, "Position %d: unexpected character %c", i + 1, input[i]);

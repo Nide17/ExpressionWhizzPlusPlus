@@ -46,12 +46,7 @@ struct _dictionary
 CDict CD_new()
 {
   CDict dict = (CDict)malloc(sizeof(struct _dictionary));
-
-  if (dict == NULL)
-  {
-    printf("Error: memory allocation failed for dictionary\n");
-    return NULL;
-  }
+  assert(dict != NULL);
 
   dict->num_stored = 0;
   dict->num_deleted = 0;
@@ -240,9 +235,14 @@ bool CD_contains(CDict dict, CDictKeyType key)
 // Documented in .h file
 void CD_store(CDict dict, CDictKeyType key, CDictValueType value)
 {
-  if (dict == NULL || key == NULL)
+  if (dict == NULL)
   {
-    printf("Store error: dictionary or key or value is NULL for [%s]\n", key);
+    printf("Store error: dictionary or key or value is NULL for [%s], [%g]\n", key, value);
+    return;
+  }
+  if (isnan(value))
+  {
+    printf("Store error: value is NaN for [%s]\n", key);
     return;
   }
 

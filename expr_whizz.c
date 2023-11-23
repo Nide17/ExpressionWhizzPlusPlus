@@ -62,9 +62,6 @@ int main(int argc, char *argv[])
     if (CL_length(tokens) == 0)
       goto loop_end;
 
-    // uncomment for more debug info
-    TOK_print(tokens);
-
     tree = Parse(tokens, errmsg, sizeof(errmsg));
 
     if (tree == NULL)
@@ -74,17 +71,22 @@ int main(int argc, char *argv[])
     }
 
     ET_tree2string(tree, expr_buf, sizeof(expr_buf));
-    printf("%s  ==> %g\n", expr_buf, ET_evaluate(tree, vars, errmsg, sizeof(errmsg))); // TODO: correct the evaluate function
+    double result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
+
+    if (isnan(result))
+    {
+      fprintf(stderr, "%s\n", errmsg);
+      goto loop_end;
+    }
+    printf("%s  ==> %g\n", expr_buf, result);
 
   loop_end:
     free(input);
     input = NULL;
     CL_free(tokens);
     tokens = NULL;
-    ET_free(tree);
-    tree = NULL;
-    CD_free(vars);
-    vars = NULL;
+    // ET_free(tree);
+    // tree = NULL;
   }
 
   return 0;
