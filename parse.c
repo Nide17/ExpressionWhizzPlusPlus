@@ -33,6 +33,27 @@ static ExprTree multiplicative(CList tokens, char *errmsg, size_t errmsg_sz); //
 static ExprTree exponential(CList tokens, char *errmsg, size_t errmsg_sz);    // primary [ ^ exponential ]
 static ExprTree primary(CList tokens, char *errmsg, size_t errmsg_sz);        // constant | symbol | ( assignment ) | – primary
 
+
+ExprTree Parse(CList tokens, char *errmsg, size_t errmsg_sz)
+{
+  if (tokens == NULL || CL_length(tokens) == 0 || TOK_next_type(tokens) == TOK_END)
+    return NULL;
+
+  ExprTree ret = assignment(tokens, errmsg, errmsg_sz);
+
+  if (ret == NULL)
+    return NULL;
+
+  if (TOK_next_type(tokens) != TOK_END)
+  {
+    snprintf(errmsg, errmsg_sz, "Syntax error on token %s", TT_to_str(TOK_next_type(tokens)));
+    ET_free(ret);
+    return NULL;
+  }
+
+  return ret;
+}
+
 static ExprTree assignment(CList tokens, char *errmsg, size_t errmsg_sz)
 {
   ExprTree expr = additive(tokens, errmsg, errmsg_sz);
@@ -220,32 +241,19 @@ static ExprTree primary(CList tokens, char *errmsg, size_t errmsg_sz)
   }
   else if (TOK_next_type(tokens) == TOK_SYMBOL)
   {
-    ret = ET_symbol(TOK_next(tokens).t.symbol);
+
+    // TODO: Why is causing a segfault when I use ET_symbol(TOK_next(tokens).t.symbol) directly?
+    ExprTree temp_tree = ET_symbol(TOK_next(tokens).t.symbol);
+
+    if (temp_tree == NULL)
+      return NULL;
+
+    ret = temp_tree;
     TOK_consume(tokens);
   }
   else
   {
     snprintf(errmsg, errmsg_sz, "Unexpected token %s", TT_to_str(TOK_next_type(tokens)));
-    ET_free(ret);
-    return NULL;
-  }
-
-  return ret;
-}
-
-ExprTree Parse(CList tokens, char *errmsg, size_t errmsg_sz)
-{
-  if (tokens == NULL || CL_length(tokens) == 0 || TOK_next_type(tokens) == TOK_END)
-    return NULL;
-
-  ExprTree ret = assignment(tokens, errmsg, errmsg_sz);
-
-  if (ret == NULL)
-    return NULL;
-
-  if (TOK_next_type(tokens) != TOK_END)
-  {
-    snprintf(errmsg, errmsg_sz, "Syntax error on token %s", TT_to_str(TOK_next_type(tokens)));
     ET_free(ret);
     return NULL;
   }

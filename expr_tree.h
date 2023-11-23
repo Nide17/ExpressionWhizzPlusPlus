@@ -47,6 +47,20 @@ typedef enum
 ExprTree ET_value(double value);
 
 /*
+ * Create a symbol node on the tree. A symbol node is always a leaf.
+ *
+ * Parameters:
+ *   symbol    The symbol for the leaf node
+ *
+ * Returns:
+ *   The new tree, which will consist of a single leaf node
+ *
+ * It is the responsibility of the caller to call ET_free on a tree
+ * that contains this leaf.
+ */
+ExprTree ET_symbol(const char *symbol);
+
+/*
  * Create an interior node on tree. An interior node always represents
  * an arithmetic operation.
  *
@@ -62,21 +76,6 @@ ExprTree ET_value(double value);
  * that contains this leaf
  */
 ExprTree ET_node(ExprNodeType op, ExprTree left, ExprTree right);
-
-
-/*
- * Create a symbol node on the tree. A symbol node is always a leaf.
- *
- * Parameters:
- *   symbol    The symbol for the leaf node
- *
- * Returns:
- *   The new tree, which will consist of a single leaf node
- *
- * It is the responsibility of the caller to call ET_free on a tree
- * that contains this leaf.
- */
-ExprTree ET_symbol(const char *symbol);
 
 /*
  * Destroy an ExprTree, calling free() on all malloc'd memory

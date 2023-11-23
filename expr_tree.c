@@ -51,6 +51,8 @@ static char ExprNodeType_to_char(ExprNodeType ent)
     return '/';
   case OP_POWER:
     return '^';
+  case OP_ASSIGN:
+    return '=';
   default:
     assert(0);
   }
@@ -68,6 +70,23 @@ ExprTree ET_value(double value)
 }
 
 // Documented in .h file
+ExprTree ET_symbol(const char *symbol)
+{
+  if (symbol == NULL)
+    return NULL;
+
+  // This function should create a new type of leaf node in the ExprTree, which has the
+  // ExprNodeType SYMBOL
+  ExprTree tree = malloc(sizeof(struct _expr_tree_node));
+  assert(tree != NULL);
+
+  tree->type = SYMBOL;
+  snprintf(tree->n.symbol, SYMBOL_MAX_SIZE + 1, "%s", symbol);
+
+  return tree;
+}
+
+// Documented in .h file
 ExprTree ET_node(ExprNodeType op, ExprTree left, ExprTree right)
 {
   if (op == UNARY_NEGATE)
@@ -76,21 +95,11 @@ ExprTree ET_node(ExprNodeType op, ExprTree left, ExprTree right)
     assert(left != NULL && right != NULL);
 
   ExprTree tree = malloc(sizeof(struct _expr_tree_node));
+  assert(tree != NULL);
+
   tree->type = op;
   tree->n.child[LEFT] = left;
   tree->n.child[RIGHT] = right;
-  return tree;
-}
-
-// Documented in .h file
-ExprTree ET_symbol(const char *symbol)
-{
-  // This function should create a new type of leaf node in the ExprTree, which has the
-  // ExprNodeType SYMBOL
-  ExprTree tree = malloc(sizeof(struct _expr_tree_node));
-
-  tree->type = SYMBOL;
-  snprintf(tree->n.symbol, SYMBOL_MAX_SIZE + 1, "%s", symbol);
 
   return tree;
 }
@@ -101,7 +110,7 @@ void ET_free(ExprTree tree)
   if (tree == NULL)
     return;
 
-  if (tree->type != VALUE)
+  if (tree->type != VALUE && tree->type != SYMBOL)
   {
     ET_free(tree->n.child[LEFT]);
     ET_free(tree->n.child[RIGHT]);
@@ -116,7 +125,7 @@ int ET_count(ExprTree tree)
   if (tree == NULL)
     return 0;
 
-  if (tree->type == VALUE)
+  if (tree->type == VALUE || tree->type == SYMBOL)
     return 1;
 
   return 1 + ET_count(tree->n.child[LEFT]) + ET_count(tree->n.child[RIGHT]);
@@ -128,7 +137,7 @@ int ET_depth(ExprTree tree)
   if (tree == NULL)
     return 0;
 
-  if (tree->type == VALUE)
+  if (tree->type == VALUE || tree->type == SYMBOL)
     return 1;
 
   int left = ET_depth(tree->n.child[LEFT]);
@@ -155,7 +164,7 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
   if (tree == NULL)
     return 0;
 
-  if (tree->type == VALUE)
+  if (tree->type == VALUE || tree->type == SYMBOL)
     return tree->n.value;
 
   double left = ET_evaluate(tree->n.child[LEFT], vars, errmsg, errmsg_sz);
@@ -175,14 +184,15 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
     return pow(left, right);
   case UNARY_NEGATE:
     return -left;
-  case SYMBOL:
-    if (CD_contains(vars, tree->n.symbol))
-      return CD_retrieve(vars, tree->n.symbol); // check if this is the right way to retrieve the value
-    else
+  case OP_ASSIGN:
+    if (tree->n.child[LEFT]->type != SYMBOL)
     {
-      snprintf(errmsg, errmsg_sz, "Unknown variable: %s", tree->n.symbol);
+      snprintf(errmsg, errmsg_sz, "Left side of assignment must be a symbol");
       return NAN;
     }
+
+    CD_store(vars, tree->n.child[LEFT]->n.symbol, right);
+    return right;
   default:
     assert(0);
   }
@@ -201,10 +211,20 @@ size_t ET_tree2string(ExprTree tree, char *buf, size_t buf_sz)
   // write to buffer if it is a value
   if (tree->type == VALUE)
     length = snprintf(buf, buf_sz, "%g", tree->n.value);
+
+  // write to buffer if it is a symbol
+  else if (tree->type == SYMBOL)
+  {
+    length = snprintf(buf, buf_sz, "%s", tree->n.symbol);
+    printf("buff: %s\n", buf);
+  }
   else
   {
     // process the left child
-    size_t leftLength = ET_tree2string(tree->n.child[LEFT], leftBuffer, buf_sz);
+    size_t leftLength = 0;
+
+    if (tree->n.child[LEFT] != NULL)
+      leftLength = ET_tree2string(tree->n.child[LEFT], leftBuffer, buf_sz);
 
     // print to the buffer if unary negate
     if (tree->type == UNARY_NEGATE)
@@ -213,10 +233,13 @@ size_t ET_tree2string(ExprTree tree, char *buf, size_t buf_sz)
     else
     {
       // process the right child
-      size_t rightLength = ET_tree2string(tree->n.child[RIGHT], rightBuffer, buf_sz);
+      size_t rightLength = 0;
+
+      if (tree->n.child[RIGHT] != NULL)
+        rightLength = ET_tree2string(tree->n.child[RIGHT], rightBuffer, buf_sz);
 
       // print to the buffer both children
-      if (tree->n.child[LEFT]->type != VALUE)
+      if (tree->n.child[LEFT]->type != VALUE && tree->n.child[LEFT]->type != SYMBOL)
       {
         char tempBuffer[buf_sz];
         snprintf(tempBuffer, buf_sz, "%s", leftBuffer);
@@ -224,7 +247,7 @@ size_t ET_tree2string(ExprTree tree, char *buf, size_t buf_sz)
         leftLength += 2;
       }
 
-      if (tree->n.child[RIGHT]->type != VALUE)
+      if (tree->n.child[RIGHT]->type != VALUE && tree->n.child[RIGHT]->type != SYMBOL)
       {
         char tempBuffer[buf_sz];
         snprintf(tempBuffer, buf_sz, "%s", rightBuffer);
@@ -246,26 +269,6 @@ size_t ET_tree2string(ExprTree tree, char *buf, size_t buf_sz)
   }
 
   buf[length] = '\0';
+  printf("buf: %s\n", buf);
   return length;
 }
-
-parmenin @scottyone : ~ / Assignments / 11 $ scottycheck isse - 11 *.c *.h
-//                                                                     Extracting files... Good job : Code compiled without errors
-
-//                                                                                                        Error : Your program crashed :
-
-//     AddressSanitizer : DEADLYSIGNAL ==
-//     == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
-//     =
-//         == 2674297 == ERROR : AddressSanitizer : SEGV on unknown address(pc 0x56498c32c2a4 bp 0x7ffe8e3a60e0 sp 0x7ffe8e3a56e0 T0) == 2674297 == The signal is caused by a READ memory access.== 2674297 == Hint : this fault was caused by a dereference of a high value address(see register values below).Dissassemble the provided pc to learn which register was used.
-// # 0 0x56498c32c2a4 in ET_tree2string(/ var / local / scottycheck / isse - 11 / parmenin / 1122 - 134413 / a.out + 0xb2a4)
-// # 1 0x56498c32c37c in ET_tree2string(/ var / local / scottycheck / isse - 11 / parmenin / 1122 - 134413 / a.out + 0xb37c)
-// # 2 0x56498c32c37c in ET_tree2string(/ var / local / scottycheck / isse - 11 / parmenin / 1122 - 134413 / a.out + 0xb37c)
-// # 3 0x56498c32c43d in ET_tree2string(/ var / local / scottycheck / isse - 11 / parmenin / 1122 - 134413 / a.out + 0xb43d)
-// # 4 0x56498c330eb9 in test_expr_tree(/ var / local / scottycheck / isse - 11 / parmenin / 1122 - 134413 / a.out + 0xfeb9)
-// # 5 0x56498c33d95a in main(/ var / local / scottycheck / isse - 11 / parmenin / 1122 - 134413 / a.out + 0x1c95a)
-// # 6 0x7fddf4629d8f in __libc_start_call_main../ sysdeps / nptl / libc_start_call_main.h : 58
-// # 7 0x7fddf4629e3f in __libc_start_main_impl../ csu / libc - start.c : 392
-// # 8 0x56498c327624 in _start(/ var / local / scottycheck / isse - 11 / parmenin / 1122 - 134413 / a.out + 0x6624)
-
-//                                                                                                                                                                                                                    AddressSanitizer can not provide additional info.SUMMARY : AddressSanitizer : SEGV(/ var / local / scottycheck / isse - 11 / parmenin / 1122 - 134413 / a.out + 0xb2a4) in ET_tree2string == 2674297 == ABORTING

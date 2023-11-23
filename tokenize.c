@@ -68,12 +68,13 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
 {
   int i = 0;
   CList tokens = CL_new();
+  // printf("input: %s\n", input);
 
   while (input[i] != '\0')
   {
     if (isspace(input[i]))
       i++;
-      
+
     else if (isdigit(input[i]) || (input[i] == '.' && isdigit(input[i + 1])))
     {
       char *end;
@@ -164,19 +165,33 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
     {
       char symbol[SYMBOL_MAX_SIZE + 1];
       int j = 0;
-      while (isalpha(input[i]) && j < SYMBOL_MAX_SIZE)
+
+      // a symbol, but it follows these rules: A
+      // symbol must begin with a alphabetic letter or underscore, and then it can be any combination of letters,
+      // underscores, or digits.The maximum length of a symbol is 31 characters.
+      // check if the symbol is invalid
+      while (j < SYMBOL_MAX_SIZE && (isalpha(input[i]) || isdigit(input[i]) || input[i] == '_'))
       {
         symbol[j] = input[i];
         i++;
         j++;
       }
       symbol[j] = '\0';
+
       Token tok = {TOK_SYMBOL, {.symbol = {0}}};
+
+      // assign the symbol to the token
+      strncpy(tok.t.symbol, symbol, SYMBOL_MAX_SIZE + 1);
+
+      // append the token to the list of tokens
       CL_append(tokens, (CListElementType)tok);
-      strncpy(CL_nth(tokens, CL_length(tokens) - 1).t.symbol, symbol, SYMBOL_MAX_SIZE + 1);
+
+      // advance i to the first character after the symbol
+      // i = end - input;
     }
     else
     {
+      printf("Unexpected character %c\n", input[i]);
       Token tok = {TOK_END, {.value = 0.0}};
       CL_append(tokens, (CListElementType)tok);
       snprintf(errmsg, errmsg_sz, "Position %d: unexpected character %c", i + 1, input[i]);
@@ -232,9 +247,6 @@ void TOK_consume(CList tokens)
 void print_element(int pos, CListElementType element, void *cb_data)
 {
   CListElementType *data = (CListElementType *)cb_data;
-
-  // CListElementType
-  // printf("%s: %d %s\n", (char *)data, pos, TT_to_str(element.type));
 
   // Token4
   if (element.type == TOK_VALUE)

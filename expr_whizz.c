@@ -25,12 +25,12 @@
 int main(int argc, char *argv[])
 {
   char *input = NULL;
-  CList tokens = NULL;
-  ExprTree tree = NULL;
-  CDict vars = CD_new();
   char errmsg[128];
   bool time_to_quit = false;
   char expr_buf[1024];
+  CList tokens = NULL;
+  ExprTree tree = NULL;
+  CDict vars = CD_new();
 
   printf("Welcome to ExpressionWhizz!\n");
 
@@ -62,57 +62,8 @@ int main(int argc, char *argv[])
     if (CL_length(tokens) == 0)
       goto loop_end;
 
+    // uncomment for more debug info
     TOK_print(tokens);
-
-    // find variables
-    if (TOK_next_type(tokens) == TOK_SYMBOL)
-    {
-      Token var_name = TOK_next(tokens);
-      if (TOK_next_type(tokens) == TOK_EQUAL)
-      {
-        TOK_next(tokens); // skip the '='
-        double value = NAN;
-        if (TOK_next_type(tokens) == TOK_VALUE)
-        {
-          Token t = TOK_next(tokens);
-          value = t.t.value;
-        }
-        else if (TOK_next_type(tokens) == TOK_SYMBOL)
-        {
-          Token t = TOK_next(tokens);
-          if (CD_contains(vars, t.t.symbol))
-          {
-            value = CD_retrieve(vars, t.t.symbol);
-          }
-          else
-          {
-            fprintf(stderr, "Unknown variable '%s'\n", t.t.symbol);
-            goto loop_end;
-          }
-        }
-        else
-        {
-          fprintf(stderr, "Expected a number or variable name after '='\n");
-          goto loop_end;
-        }
-        CD_store(vars, var_name.t.symbol, value);
-        printf("Variable '%s' set to %g\n", var_name.t.symbol, value);
-        goto loop_end;
-      }
-      else
-      {
-        if (CD_contains(vars, var_name.t.symbol))
-        {
-          printf("Variable '%s' is %g\n", var_name.t.symbol, CD_retrieve(vars, var_name.t.symbol));
-          goto loop_end;
-        }
-        else
-        {
-          fprintf(stderr, "Unknown variable '%s'\n", var_name.t.symbol);
-          goto loop_end;
-        }
-      }
-    }
 
     tree = Parse(tokens, errmsg, sizeof(errmsg));
 
@@ -122,14 +73,7 @@ int main(int argc, char *argv[])
       goto loop_end;
     }
 
-    if (isnan(ET_evaluate(tree, vars, errmsg, sizeof(errmsg))))
-    {
-      fprintf(stderr, "%s\n", errmsg);
-      goto loop_end;
-    }
-
     ET_tree2string(tree, expr_buf, sizeof(expr_buf));
-
     printf("%s  ==> %g\n", expr_buf, ET_evaluate(tree, vars, errmsg, sizeof(errmsg))); // TODO: correct the evaluate function
 
   loop_end:
@@ -139,6 +83,8 @@ int main(int argc, char *argv[])
     tokens = NULL;
     ET_free(tree);
     tree = NULL;
+    CD_free(vars);
+    vars = NULL;
   }
 
   return 0;

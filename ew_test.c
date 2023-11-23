@@ -31,7 +31,6 @@
     }                                                              \
   }
 
-// Token tokens[] = {{TOK_VALUE, {2}}, {TOK_PLUS}, {TOK_MINUS}, {TOK_MULTIPLY}, {TOK_DIVIDE}, {TOK_POWER}, {TOK_OPEN_PAREN}, {TOK_CLOSE_PAREN}, {TOK_END}, {TOK_DIVIDE}, {TOK_POWER}};
 Token tokens[] = {{TOK_VALUE, {2}}, {TOK_PLUS}, {TOK_MINUS}, {TOK_MULTIPLY}, {TOK_DIVIDE}, {TOK_POWER}, {TOK_OPEN_PAREN}, {TOK_CLOSE_PAREN}, {TOK_END}, {TOK_DIVIDE}, {TOK_POWER}};
 
 const int num_tokens = sizeof(tokens) / sizeof(tokens[0]);
@@ -276,14 +275,17 @@ int test_tokenize_input()
   test_assert(test_tok_eq(CL_nth(list, 0), (Token){TOK_VALUE, {12}}));
   CL_free(list);
 
-  // test_assert(TOK_tokenize_input("3pi", errmsg, sizeof(errmsg)) == NULL);
-  // test_assert(strcasecmp(errmsg, "Position 2: unexpected character p") == 0);
+  list = TOK_tokenize_input("3pi", errmsg, sizeof(errmsg));
+  test_assert(CL_length(list) == 2);
+  CL_free(list);
 
-  // test_assert(TOK_tokenize_input("make", errmsg, sizeof(errmsg)) == NULL);
-  // test_assert(strcasecmp(errmsg, "Position 1: unexpected character m") == 0);
+  list = TOK_tokenize_input("make", errmsg, sizeof(errmsg));
+  test_assert(CL_length(list) == 1);
+  CL_free(list);
 
-  // test_assert(TOK_tokenize_input("1258make111", errmsg, sizeof(errmsg)) == NULL);
-  // test_assert(strcasecmp(errmsg, "Position 5: unexpected character m") == 0);
+  list = TOK_tokenize_input("1258make111", errmsg, sizeof(errmsg));
+  test_assert(CL_length(list) == 2);
+  CL_free(list);
 
   list = TOK_tokenize_input("(3 + 2)", errmsg, sizeof(errmsg));
   test_assert(CL_length(list) == 5);
@@ -344,6 +346,9 @@ int test_parse_once(double exp_value, int exp_depth, const Token token_arr[])
     CL_append(tokens, token_arr[i]);
 
   tree = Parse(tokens, errmsg, sizeof(errmsg));
+  // TOK_print(tokens);
+  // printf("ET_depth(tree) = %d, Expected = %d\n", ET_depth(tree), exp_depth);
+
   test_assert(ET_depth(tree) == exp_depth);
   test_assert(fabs(ET_evaluate(tree, vars, errmsg, sizeof(errmsg)) - exp_value) < 0.0001);
 
@@ -488,11 +493,12 @@ int test_parse_errors()
   ET_free(tree);
   CL_free(tokens);
 
-  // tokens = TOK_tokenize_input("sine", errmsg, sizeof(errmsg));
-  // test_assert(CL_length(tokens) == 0);
-  // test_assert(Parse(tokens, errmsg, sizeof(errmsg)) == NULL);
-  // test_assert(strcasecmp(errmsg, "Position 1: unexpected character s") == 0);
-  // CL_free(tokens);
+  tokens = TOK_tokenize_input("sine", errmsg, sizeof(errmsg));
+  test_assert(CL_length(tokens) == 1);
+  tree = Parse(tokens, errmsg, sizeof(errmsg));
+  // test_assert(tree != NULL);
+  CL_free(tokens);
+  // ET_free(tree);
 
   tokens = TOK_tokenize_input("((2+3)*5)/(4-1)", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 15);
@@ -509,9 +515,10 @@ int test_parse_errors()
   CL_free(tokens);
 
   // tokens = TOK_tokenize_input("2 + a * 3", errmsg, sizeof(errmsg));
-  // test_assert(CL_length(tokens) == 0);
-  // test_assert(Parse(tokens, errmsg, sizeof(errmsg)) == NULL);
-  // test_assert(strcasecmp(errmsg, "Position 5: unexpected character a") == 0);
+  // test_assert(CL_length(tokens) == 5);
+  // tree = Parse(tokens, errmsg, sizeof(errmsg));
+  // test_assert(tree != NULL);
+  // ET_free(tree);
   // CL_free(tokens);
 
   tokens = TOK_tokenize_input("2 + * 3", errmsg, sizeof(errmsg));
