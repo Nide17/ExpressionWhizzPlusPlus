@@ -22,3 +22,4 @@ a04*
 tmp.*
 *.pdf
 ./cdict_test
+/42

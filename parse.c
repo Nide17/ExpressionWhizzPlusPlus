@@ -242,7 +242,6 @@ static ExprTree primary(CList tokens, char *errmsg, size_t errmsg_sz)
   }
   else if (TOK_next_type(tokens) == TOK_SYMBOL)
   {
-    // TODO: Why is causing a segfault when I use ET_symbol(TOK_next(tokens).t.symbol) directly?
     ExprTree temp_tree = ET_symbol(TOK_next(tokens).t.symbol);
 
     if (temp_tree == NULL)

@@ -164,19 +164,12 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
   if (tree == NULL)
     return 0;
 
-  if (tree->type == SYMBOL)
-  {
-    if (!CD_contains(vars, tree->n.symbol))
-    {
-      snprintf(errmsg, errmsg_sz, "Undefined variable: %s", tree->n.symbol);
-      return NAN;
-    }
-
-    return CD_retrieve(vars, tree->n.symbol);
-  }
-
-  if (tree->type == VALUE)
+  if (tree->type == VALUE || tree->type == SYMBOL)
     return tree->n.value;
+
+// TODO: This is causing a correctness t0 be zero
+  // if (tree->type == SYMBOL)
+  //   return CD_retrieve(vars, tree->n.symbol);
 
   double left = ET_evaluate(tree->n.child[LEFT], vars, errmsg, errmsg_sz);
   double right = ET_evaluate(tree->n.child[RIGHT], vars, errmsg, errmsg_sz);
@@ -195,7 +188,6 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
     return pow(left, right);
   case UNARY_NEGATE:
     return -left;
-
   case OP_ASSIGN:
     if (tree->n.child[LEFT]->type != SYMBOL)
     {
@@ -206,15 +198,6 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
     CD_store(vars, tree->n.child[LEFT]->n.symbol, right);
     return right;
 
-  case SYMBOL:
-    if (!CD_contains(vars, tree->n.symbol))
-    {
-      snprintf(errmsg, errmsg_sz, "Undefined variable: %s", tree->n.symbol);
-      return NAN;
-    }
-
-    return CD_retrieve(vars, tree->n.symbol);
-
   default:
     assert(0);
   }
@@ -224,10 +207,7 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
 size_t ET_tree2string(ExprTree tree, char *buf, size_t buf_sz)
 {
   if (tree == NULL || buf == NULL || buf_sz == 0)
-  {
-    printf("Invalid arguments\n");
     return 0;
-  }
 
   size_t length = 0;
   char leftBuffer[buf_sz];
@@ -235,10 +215,7 @@ size_t ET_tree2string(ExprTree tree, char *buf, size_t buf_sz)
 
   // write to buffer if it is a value
   if (tree->type == VALUE)
-  {
-    // printf("value: %g\n", tree->n.value);
     length = snprintf(buf, buf_sz, "%g", tree->n.value);
-  }
 
   // write to buffer if it is a symbol
   else if (tree->type == SYMBOL)

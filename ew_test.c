@@ -423,7 +423,7 @@ int test_parse_errors()
   char errmsg[128];
   CList tokens = NULL;
   ExprTree tree = NULL;
-  // CDict vars = NULL;
+  CDict vars = CD_new();
 
   tokens = TOK_tokenize_input("3 + 2", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 3);
@@ -495,13 +495,12 @@ int test_parse_errors()
 
   // x = 3
   tokens = TOK_tokenize_input("x = 25", errmsg, sizeof(errmsg));
+  CD_store(vars, "x", 25);
   test_assert(CL_length(tokens) == 3);
   tree = Parse(tokens, errmsg, sizeof(errmsg));
   test_assert(tree != NULL);
   ET_tree2string(tree, errmsg, sizeof(errmsg));
-  double result = ET_evaluate(tree, NULL, errmsg, sizeof(errmsg));
-
-    
+  double result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
   test_assert(result == 25);
   ET_free(tree);
   CL_free(tokens);
@@ -555,23 +554,25 @@ int test_parse_errors()
   CL_free(tokens);
 
   tokens = TOK_tokenize_input("1234567890+9876543210*1234567890", errmsg, sizeof(errmsg));
-  test_assert(CL_length(tokens) == 5);
-  tree = Parse(tokens, errmsg, sizeof(errmsg));
-  test_assert(tree != NULL);
-  ET_free(tree);
+  test_assert(CL_length(tokens) == 0);
+  test_assert(errmsg[0] != '\0');
+  test_assert(strcasecmp(errmsg, "Position 1: Symbol is too long") == 0);
   CL_free(tokens);
-
+  
   tokens = TOK_tokenize_input("-(-2)^3", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 7);
   tree = Parse(tokens, errmsg, sizeof(errmsg));
   test_assert(tree != NULL);
-  ET_free(tree);
   CL_free(tokens);
+  ET_free(tree);
 
+  CD_free(vars);
   return 1;
 
 test_error:
   CL_free(tokens);
+  ET_free(tree);
+  CD_free(vars);
   return 0;
 }
 

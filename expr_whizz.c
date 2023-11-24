@@ -7,7 +7,6 @@
  *
  * Author: Niyomwungeri Parmenide Ishimwe <parmenin@andrew.cmu.edu>
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,23 +70,18 @@ int main(int argc, char *argv[])
     }
 
     ET_tree2string(tree, expr_buf, sizeof(expr_buf));
-    double result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
-
-    if (isnan(result))
-    {
-      fprintf(stderr, "%s\n", errmsg);
-      goto loop_end;
-    }
-    printf("%s  ==> %g\n", expr_buf, result);
+    printf("%s  ==> %g\n", expr_buf, ET_evaluate(tree, vars, errmsg, sizeof(errmsg)));
 
   loop_end:
     free(input);
     input = NULL;
     CL_free(tokens);
     tokens = NULL;
-    // ET_free(tree);
-    // tree = NULL;
   }
 
+    ET_free(tree);
+    tree = NULL;
+    CD_free(vars);
+    vars = NULL;
   return 0;
 }

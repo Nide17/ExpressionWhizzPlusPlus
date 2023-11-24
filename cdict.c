@@ -46,7 +46,9 @@ struct _dictionary
 CDict CD_new()
 {
   CDict dict = (CDict)malloc(sizeof(struct _dictionary));
-  assert(dict != NULL);
+
+  if(!dict)
+    return NULL;
 
   dict->num_stored = 0;
   dict->num_deleted = 0;
@@ -210,7 +212,6 @@ bool CD_contains(CDict dict, CDictKeyType key)
 {
   if (dict == NULL || key == NULL)
   {
-    printf("Contains error: dictionary or key is NULL for [%s]\n", key);
     return false;
   }
 
@@ -222,13 +223,17 @@ bool CD_contains(CDict dict, CDictKeyType key)
 
     // Can't find the key
     if (dict->slot[index].status == SLOT_UNUSED)
+    {
+      printf("Error: cannot find key [%s]\n", key);
       return false;
+    }
 
     // Found the key
     else if (dict->slot[index].status == SLOT_IN_USE && strcmp(dict->slot[index].key, key) == 0)
       return true;
   }
 
+  printf("Error: cannot find key [%s]\n", key);
   return false;
 }
 
@@ -236,15 +241,10 @@ bool CD_contains(CDict dict, CDictKeyType key)
 void CD_store(CDict dict, CDictKeyType key, CDictValueType value)
 {
   if (dict == NULL)
-  {
-    printf("Store error: dictionary or key or value is NULL for [%s], [%g]\n", key, value);
     return;
-  }
+
   if (isnan(value))
-  {
-    printf("Store error: value is NaN for [%s]\n", key);
     return;
-  }
 
   // Hash the key to get an index
   unsigned int hash = _CD_hash(key, dict->capacity);
@@ -282,7 +282,7 @@ CDictValueType CD_retrieve(CDict dict, CDictKeyType key)
 {
   if (dict == NULL || key == NULL)
   {
-    printf("Retrieve error: dictionary or key is NULL for [%s]\n", key);
+    dict == NULL ? printf("Error: cannot retrieve from NULL dictionary\n") : printf("Error: cannot retrieve NULL key\n");
     return INVALID_VALUE;
   }
 

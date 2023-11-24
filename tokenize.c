@@ -69,6 +69,15 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
   int i = 0;
   CList tokens = CL_new();
 
+  // The maximum length of a symbol is 31 characters.
+  // check if the symbol is invalid
+  if (strlen(input) > 31)
+  {
+    snprintf(errmsg, errmsg_sz, "Position %d: Symbol is too long", i + 1);
+    CL_free(tokens);
+    return NULL;
+  }
+
   while (input[i] != '\0')
   {
     if (isspace(input[i]))
@@ -95,7 +104,6 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
       if (input[i + 1] == '+' && CL_nth(tokens, CL_length(tokens) - 1).type == TOK_VALUE && isValidMathSign(input[i + 2]))
       {
         Token prev_token = CL_remove(tokens, CL_length(tokens) - 1);
-        // Token new_token = {TOK_VALUE, prev_token.t.value + 1};
         Token new_token = {TOK_VALUE, {.value = prev_token.t.value + 1}};
         CL_append(tokens, new_token);
         i += 2;
