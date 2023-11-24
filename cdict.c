@@ -80,7 +80,14 @@ void CD_free(CDict dict)
   if (dict)
   {
     if (dict->slot)
+    {
+      for (unsigned int i = 0; i < dict->capacity; i++)
+      {
+        if (dict->slot[i].status == SLOT_IN_USE)
+          free(dict->slot[i].key);
+      }
       free(dict->slot);
+    }
 
     free(dict);
   }
@@ -265,7 +272,7 @@ void CD_store(CDict dict, CDictKeyType key, CDictValueType value)
   else if (dict->slot[hash].status == SLOT_UNUSED)
   {
     dict->slot[hash].status = SLOT_IN_USE;
-    dict->slot[hash].key = key;
+    dict->slot[hash].key = strdup(key);
     dict->slot[hash].value = value;
     dict->num_stored++;
 
@@ -331,7 +338,7 @@ void CD_delete(CDict dict, CDictKeyType key)
       dict->num_stored--;
       dict->num_deleted++;
       dict->slot[index].key = NULL;
-      dict->slot[index].value = NAN; // To check if -1 is valid default value
+      dict->slot[index].value = NAN;
       return;
     }
   }

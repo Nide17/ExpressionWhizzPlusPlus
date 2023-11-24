@@ -164,12 +164,11 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
   if (tree == NULL)
     return 0;
 
-  if (tree->type == VALUE || tree->type == SYMBOL)
+  if (tree->type == VALUE)
     return tree->n.value;
 
-// TODO: This is causing a correctness t0 be zero
-  // if (tree->type == SYMBOL)
-  //   return CD_retrieve(vars, tree->n.symbol);
+  if (tree->type == SYMBOL)
+    return CD_retrieve(vars, tree->n.symbol);
 
   double left = ET_evaluate(tree->n.child[LEFT], vars, errmsg, errmsg_sz);
   double right = ET_evaluate(tree->n.child[RIGHT], vars, errmsg, errmsg_sz);

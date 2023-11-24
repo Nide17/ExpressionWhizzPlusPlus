@@ -313,6 +313,30 @@ int test_tokenize_input()
   test_assert(test_tok_eq(CL_nth(list, 4), (Token){TOK_MULTIPLY}));
   CL_free(list);
 
+  //  2 ^ ( 1.5 * 2 ) / ( - 1.7 + ( 6 - 0.3 ) )
+  list = TOK_tokenize_input("2^(1.5*2)/(-1.7+(6-0.3))", errmsg, sizeof(errmsg));
+  test_assert(CL_length(list) == 18);
+  test_assert(test_tok_eq(CL_nth(list, 0), (Token){TOK_VALUE, {2}}));
+  test_assert(test_tok_eq(CL_nth(list, 1), (Token){TOK_POWER}));
+  test_assert(test_tok_eq(CL_nth(list, 2), (Token){TOK_OPEN_PAREN}));
+  test_assert(test_tok_eq(CL_nth(list, 3), (Token){TOK_VALUE, {1.5}}));
+  test_assert(test_tok_eq(CL_nth(list, 4), (Token){TOK_MULTIPLY}));
+  test_assert(test_tok_eq(CL_nth(list, 5), (Token){TOK_VALUE, {2}}));
+  test_assert(test_tok_eq(CL_nth(list, 6), (Token){TOK_CLOSE_PAREN}));
+  test_assert(test_tok_eq(CL_nth(list, 7), (Token){TOK_DIVIDE}));
+  test_assert(test_tok_eq(CL_nth(list, 8), (Token){TOK_OPEN_PAREN}));
+  test_assert(test_tok_eq(CL_nth(list, 9), (Token){TOK_MINUS}));
+  test_assert(test_tok_eq(CL_nth(list, 10), (Token){TOK_VALUE, {1.7}}));
+  test_assert(test_tok_eq(CL_nth(list, 11), (Token){TOK_PLUS}));
+  test_assert(test_tok_eq(CL_nth(list, 12), (Token){TOK_OPEN_PAREN}));
+  test_assert(test_tok_eq(CL_nth(list, 13), (Token){TOK_VALUE, {6}}));
+  test_assert(test_tok_eq(CL_nth(list, 14), (Token){TOK_MINUS}));
+  test_assert(test_tok_eq(CL_nth(list, 15), (Token){TOK_VALUE, {0.3}}));
+  test_assert(test_tok_eq(CL_nth(list, 16), (Token){TOK_CLOSE_PAREN}));
+  test_assert(test_tok_eq(CL_nth(list, 17), (Token){TOK_CLOSE_PAREN}));
+  CL_free(list);
+
+
   return 1;
 
 
@@ -541,6 +565,14 @@ int test_parse_errors()
 
   tokens = TOK_tokenize_input("((((2+3)*5)/(4-1)))", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 19);
+  tree = Parse(tokens, errmsg, sizeof(errmsg));
+  test_assert(tree != NULL);
+  ET_free(tree);
+  CL_free(tokens);
+
+  //  2 ^ ( 1.5 * 2 ) / ( - 1.7 + ( 6 - 0.3 ) )
+  tokens = TOK_tokenize_input("2^(1.5*2)/(-1.7+(6-0.3))", errmsg, sizeof(errmsg));
+  test_assert(CL_length(tokens) == 18);
   tree = Parse(tokens, errmsg, sizeof(errmsg));
   test_assert(tree != NULL);
   ET_free(tree);

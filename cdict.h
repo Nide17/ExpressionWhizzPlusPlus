@@ -15,10 +15,10 @@
 
 typedef struct _dictionary *CDict;
 
-typedef const char *CDictKeyType;
+typedef char *CDictKeyType;
 typedef double CDictValueType;
 
-#define INVALID_VALUE -1
+#define INVALID_VALUE NAN
 
 /*
  * Returns a newly-allocated and newly-initialized dictionary. Upon
