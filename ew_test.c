@@ -459,7 +459,6 @@ int test_parse()
   test_assert(test_parse_once(0, 1, (Token[]){{TOK_VALUE, {0}}, {TOK_END}}));
   test_assert(test_parse_once(0, 2, (Token[]){{TOK_VALUE, {0}}, {TOK_PLUS}, {TOK_VALUE, {0}}, {TOK_END}}));
   test_assert(test_parse_once(0, 3, (Token[]){{TOK_VALUE, {0}}, {TOK_PLUS}, {TOK_VALUE, {0}}, {TOK_PLUS}, {TOK_VALUE, {0}}, {TOK_END}}));
-  // test_assert(test_parse_once(3.5, 2, (Token[]){{TOK_VALUE, {3.5}}, {TOK_PLUS}, {TOK_PLUS}, {TOK_VALUE, {0}}, {TOK_END}}));
 
   return 1;
 

@@ -203,7 +203,7 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
 
     if (tree->n.child[LEFT]->type != SYMBOL)
     {
-      snprintf(errmsg, errmsg_sz, "Left side of assignment must be a symbol");
+      snprintf(errmsg, errmsg_sz, "Syntax error on token EQUAL");
       goto eval_end;
     }
     CD_store(vars, tree->n.child[LEFT]->n.symbol, right);
