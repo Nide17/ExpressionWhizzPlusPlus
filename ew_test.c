@@ -586,11 +586,28 @@ int test_parse_errors()
   CL_free(tokens);
 
   tokens = TOK_tokenize_input("1234567890+9876543210*1234567890", errmsg, sizeof(errmsg));
-  test_assert(CL_length(tokens) == 0);
-  test_assert(errmsg[0] != '\0');
-  test_assert(strcasecmp(errmsg, "Position 1: Symbol is too long") == 0);
+  test_assert(CL_length(tokens) == 5);
+  tree = Parse(tokens, errmsg, sizeof(errmsg));
+  test_assert(tree != NULL);
+  ET_free(tree);
+  CL_free(tokens);
+
+  // 2 ^ ( 1.5 * 2 ) / ( - 1.7 + ( 6 - 0.3 ) )
+  tokens = TOK_tokenize_input(" 2 ^ ( 1.5 * 2 ) / ( -1.7 + ( 6 - 0.3 ) ) ", errmsg, sizeof(errmsg));
+  test_assert(CL_length(tokens) == 18);
+  tree = Parse(tokens, errmsg, sizeof(errmsg));
+  test_assert(tree != NULL);
+  ET_free(tree);
   CL_free(tokens);
   
+  //1111111111111111111111111111111
+  tokens = TOK_tokenize_input("111111111111111111111111111111111", errmsg, sizeof(errmsg));
+  test_assert(CL_length(tokens) == 1);
+  tree = Parse(tokens, errmsg, sizeof(errmsg));
+  test_assert(tree != NULL);
+  ET_free(tree);
+  CL_free(tokens);
+
   tokens = TOK_tokenize_input("-(-2)^3", errmsg, sizeof(errmsg));
   test_assert(CL_length(tokens) == 7);
   tree = Parse(tokens, errmsg, sizeof(errmsg));

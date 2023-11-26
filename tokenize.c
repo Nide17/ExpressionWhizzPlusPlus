@@ -69,15 +69,6 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
   int i = 0;
   CList tokens = CL_new();
 
-  // The maximum length of a symbol is 31 characters.
-  // check if the symbol is invalid
-  if (strlen(input) > 31)
-  {
-    snprintf(errmsg, errmsg_sz, "Position %d: Symbol is too long", i + 1);
-    CL_free(tokens);
-    return NULL;
-  }
-
   while (input[i] != '\0')
   {
     if (isspace(input[i]))
@@ -173,16 +164,26 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
       char symbol[SYMBOL_MAX_SIZE + 1];
       int j = 0;
 
-      // a symbol, but it follows these rules: A
-      // symbol must begin with a alphabetic letter or underscore, and then it can be any combination of letters,
-      // underscores, or digits.The maximum length of a symbol is 31 characters.
-      // check if the symbol is invalid
+      // a symbol must begin with a alphabetic letter or underscore, and then it can be any combination of letters,
+      // underscores, or digits. The maximum length of a symbol is 31 characters.
       while (j < SYMBOL_MAX_SIZE && (isalpha(input[i]) || isdigit(input[i]) || input[i] == '_'))
       {
         symbol[j] = input[i];
         i++;
         j++;
       }
+
+      // if the symbol is too long, return an error
+      if (j == SYMBOL_MAX_SIZE && (isalpha(input[i]) || isdigit(input[i]) || input[i] == '_'))
+      {
+        Token tok = {TOK_END, {.value = 0.0}};
+        CL_append(tokens, (CListElementType)tok);
+        snprintf(errmsg, errmsg_sz, "Position %d: symbol too long", i + 1);
+        CL_free(tokens);
+        return NULL;
+      }
+      
+      // add the null terminator to the end of the symbol
       symbol[j] = '\0';
 
       Token tok = {TOK_SYMBOL, {.symbol = {0}}};

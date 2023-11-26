@@ -58,7 +58,6 @@ CDict CD_new()
 
   if (dict->slot == NULL)
   {
-    printf("Error: memory allocation failed for dictionary slot\n");
     CD_free(dict);
     return NULL;
   }
@@ -135,11 +134,7 @@ static unsigned int _CD_hash(CDictKeyType str, unsigned int capacity)
  */
 static void _CD_rehash(CDict dict)
 {
-  if (dict == NULL)
-  {
-    printf("Error: cannot rehash NULL dictionary\n");
-    return;
-  }
+  assert(dict != NULL);
 
   unsigned int new_capacity = dict->capacity * 2;
   unsigned int new_num_stored = 0;
@@ -147,7 +142,6 @@ static void _CD_rehash(CDict dict)
 
   if (new_slot == NULL)
   {
-    printf("Error: memory allocation failed for new dictionary slot\n");
     CD_free(dict);
     return;
   }
@@ -206,10 +200,7 @@ unsigned int CD_size(CDict dict)
 unsigned int CD_capacity(CDict dict)
 {
   if (dict == NULL)
-  {
-    printf("Error: cannot get capacity of NULL dictionary\n");
     return 0;
-  }
 
   return dict->capacity;
 }
@@ -218,9 +209,7 @@ unsigned int CD_capacity(CDict dict)
 bool CD_contains(CDict dict, CDictKeyType key)
 {
   if (dict == NULL || key == NULL)
-  {
     return false;
-  }
 
   unsigned int hash = _CD_hash(key, dict->capacity);
 
@@ -228,19 +217,15 @@ bool CD_contains(CDict dict, CDictKeyType key)
   {
     unsigned int index = (hash + i) % dict->capacity;
 
-    // Can't find the key
+    // Can't find it
     if (dict->slot[index].status == SLOT_UNUSED)
-    {
-      printf("Error: cannot find key [%s]\n", key);
       return false;
-    }
 
-    // Found the key
+    // Found it
     else if (dict->slot[index].status == SLOT_IN_USE && strcmp(dict->slot[index].key, key) == 0)
       return true;
   }
 
-  printf("Error: cannot find key [%s]\n", key);
   return false;
 }
 
@@ -288,10 +273,7 @@ void CD_store(CDict dict, CDictKeyType key, CDictValueType value)
 CDictValueType CD_retrieve(CDict dict, CDictKeyType key)
 {
   if (dict == NULL || key == NULL)
-  {
-    dict == NULL ? printf("Error: cannot retrieve from NULL dictionary\n") : printf("Error: cannot retrieve NULL key\n");
     return INVALID_VALUE;
-  }
 
   unsigned int hash = _CD_hash(key, dict->capacity);
 
@@ -312,11 +294,8 @@ CDictValueType CD_retrieve(CDict dict, CDictKeyType key)
 // Documented in .h file
 void CD_delete(CDict dict, CDictKeyType key)
 {
-  if (dict == NULL || key == NULL)
-  {
-    printf("Delete error: dictionary or key is NULL for [%s]\n", key);
-    return;
-  }
+  assert(dict != NULL);
+  assert(key != NULL);
 
   unsigned int hash = _CD_hash(key, dict->capacity);
 
@@ -324,14 +303,14 @@ void CD_delete(CDict dict, CDictKeyType key)
   {
     unsigned int index = (hash + i) % dict->capacity;
 
-    // Can't find the key
+    // Can't find it
     if (dict->slot[index].status == SLOT_UNUSED)
     {
       printf("Error: cannot delete key [%s] not found\n", key);
       return;
     }
 
-    // Found the key
+    // Found it
     else if (dict->slot[index].status == SLOT_IN_USE && strcmp(dict->slot[index].key, key) == 0)
     {
       dict->slot[index].status = SLOT_DELETED;
@@ -347,10 +326,7 @@ void CD_delete(CDict dict, CDictKeyType key)
 double CD_load_factor(CDict dict)
 {
   if (dict == NULL || dict->capacity <= 0)
-  {
-    printf("Error: dictionary is NULL or has zero capacity\n");
     return 0;
-  }
 
   return (double)(dict->num_stored + dict->num_deleted) / dict->capacity;
 }
@@ -358,13 +334,8 @@ double CD_load_factor(CDict dict)
 // Documented in .h file
 void CD_print(CDict dict)
 {
-  if (dict == NULL)
-  {
-    printf("Error: cannot print NULL dictionary\n");
-    return;
-  }
+  assert(dict != NULL);
 
-  printf("\n\n");
   printf("*** capacity: %u stored: %u deleted: %u load_factor: %.2f\n",
          dict->capacity, dict->num_stored, dict->num_deleted, CD_load_factor(dict));
 

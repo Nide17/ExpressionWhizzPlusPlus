@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
   ExprTree tree = NULL;
   CDict vars = CD_new();
 
-  printf("Welcome to ExpressionWhizz!\n");
+  printf("Welcome to ExpressionWhizz++!\n");
 
   while (!time_to_quit)
   {
@@ -70,7 +70,8 @@ int main(int argc, char *argv[])
     }
 
     ET_tree2string(tree, expr_buf, sizeof(expr_buf));
-    printf("%s  ==> %g\n", expr_buf, ET_evaluate(tree, vars, errmsg, sizeof(errmsg)));
+    double result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
+    isnan(result) ? printf("%s\n", errmsg) : printf("%s  ==> %g\n", expr_buf, result);
 
   loop_end:
     free(input);

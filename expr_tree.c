@@ -168,7 +168,14 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
     return tree->n.value;
 
   if (tree->type == SYMBOL)
+  {
+    if (CD_contains(vars, tree->n.symbol) == 0)
+    {
+      snprintf(errmsg, errmsg_sz, "Undefined variable: %s", tree->n.symbol);
+      goto eval_end;
+    }
     return CD_retrieve(vars, tree->n.symbol);
+  }
 
   double left = ET_evaluate(tree->n.child[LEFT], vars, errmsg, errmsg_sz);
   double right = ET_evaluate(tree->n.child[RIGHT], vars, errmsg, errmsg_sz);
@@ -182,24 +189,32 @@ double ET_evaluate(ExprTree tree, CDict vars, char *errmsg, size_t errmsg_sz)
   case OP_MUL:
     return left * right;
   case OP_DIV:
+    if (right == 0)
+    {
+      snprintf(errmsg, errmsg_sz, "Division by zero");
+      goto eval_end;
+    }
     return left / right;
   case OP_POWER:
     return pow(left, right);
   case UNARY_NEGATE:
     return -left;
   case OP_ASSIGN:
+
     if (tree->n.child[LEFT]->type != SYMBOL)
     {
       snprintf(errmsg, errmsg_sz, "Left side of assignment must be a symbol");
-      return NAN;
+      goto eval_end;
     }
-
     CD_store(vars, tree->n.child[LEFT]->n.symbol, right);
     return right;
 
   default:
     assert(0);
   }
+
+  eval_end:
+    return NAN;
 }
 
 // Documented in .h file
