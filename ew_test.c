@@ -162,9 +162,57 @@ int test_expr_tree()
   CD_store(vars, "x", 0.8);
   CD_store(vars, "y", 0.2);
 
+  // x + y
+  tree = ET_node(OP_ADD, ET_symbol("x"), ET_symbol("y"));
+  len = ET_tree2string(tree, buffer, sizeof(buffer));
+  result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
+  test_assert(result == 1);
+  depth = ET_depth(tree);
+  ET_free(tree);
+
+  // t = x
+  tree = ET_node(OP_ASSIGN, ET_symbol("t"), ET_symbol("x"));
+  len = ET_tree2string(tree, buffer, sizeof(buffer));
+  result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
+  test_assert(result == 0.8);
+  depth = ET_depth(tree);
+  ET_free(tree);
+
+  // g = 25
+  tree = ET_node(OP_ASSIGN, ET_symbol("g"), ET_value(25));
+  len = ET_tree2string(tree, buffer, sizeof(buffer));
+  result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
+  test_assert(result == 25);
+  depth = ET_depth(tree);
+  ET_free(tree);
+
+  // x = x - y
+  tree = ET_node(OP_ASSIGN, ET_symbol("x"), ET_node(OP_SUB, ET_symbol("x"), ET_symbol("y")));
+  len = ET_tree2string(tree, buffer, sizeof(buffer));
+  result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
+  test_assert(fabs(result - 0.6) < 0.0001);
+  depth = ET_depth(tree);
+  ET_free(tree);
+
+  // x
+  tree = ET_symbol("x");
+  len = ET_tree2string(tree, buffer, sizeof(buffer));
+  result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
+  test_assert(fabs(result - 0.6) < 0.0001);
+  depth = ET_depth(tree);
+  ET_free(tree);
+
+  // pi->undefined
+  tree = ET_symbol("pi");
+  len = ET_tree2string(tree, buffer, sizeof(buffer));
+  result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
+  test_assert(isnan(result));
+  test_assert(strcasecmp(errmsg, "Undefined variable: pi") == 0);
+  depth = ET_depth(tree);
+  ET_free(tree);
+
   // -(0.125) (using unary negation)
   tree = ET_node(UNARY_NEGATE, ET_value(value), NULL);
-
   len = ET_tree2string(tree, buffer, sizeof(buffer));
   result = ET_evaluate(tree, vars, errmsg, sizeof(errmsg));
   depth = ET_depth(tree);
@@ -285,6 +333,12 @@ int test_tokenize_input()
 
   list = TOK_tokenize_input("1258make111", errmsg, sizeof(errmsg));
   test_assert(CL_length(list) == 2);
+  CL_free(list);
+
+  // long symbol
+  list = TOK_tokenize_input("makeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", errmsg, sizeof(errmsg));
+  test_assert(CL_length(list) == 0);
+  test_assert(strcasecmp(errmsg, "Position 32: symbol too long") == 0);
   CL_free(list);
 
   list = TOK_tokenize_input("(3 + 2)", errmsg, sizeof(errmsg));

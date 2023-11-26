@@ -77,6 +77,7 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
     else if (isdigit(input[i]) || (input[i] == '.' && isdigit(input[i + 1])))
     {
       char *end;
+
       // convert string to double, starting at address of input[i]
       // and store the address of the first character after the number in end
       // if the number is 1.2e3, end will point to the 'e' & double value will be 1.2
@@ -193,9 +194,6 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
 
       // append the token to the list of tokens
       CL_append(tokens, (CListElementType)tok);
-
-      // advance i to the first character after the symbol
-      // i = end - input;
     }
     else
     {
@@ -207,7 +205,7 @@ CList TOK_tokenize_input(const char *input, char *errmsg, size_t errmsg_sz)
     }
   }
 
-  // 6. Return the list of tokens
+  // Return the final list of tokens
   return tokens;
 }
 
@@ -255,7 +253,7 @@ void print_element(int pos, CListElementType element, void *cb_data)
 {
   CListElementType *data = (CListElementType *)cb_data;
 
-  // Token4
+  // Token
   if (element.type == TOK_VALUE)
     printf("%s: %d %s %f\n", (char *)data, pos, TT_to_str(element.type), element.t.value);
   else if (element.type == TOK_SYMBOL)
